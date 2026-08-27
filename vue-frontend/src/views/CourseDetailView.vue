@@ -62,6 +62,33 @@
     <div v-else class="loading-center">
       <p class="empty-text">지원사업 정보를 불러오지 못했습니다.</p>
     </div>
+
+    <!-- AI 서류 자동 작성 모달 -->
+    <div v-if="modalOpen" class="modal-backdrop" @click.self="closeModal">
+      <div class="modal-box fade-in-up">
+        <h2 class="modal-title">AI 서류 자동 작성</h2>
+        <p class="modal-subtitle">{{ course?.title }}</p>
+
+        <label class="field">
+          <span class="field-label">신청 서류 초안</span>
+          <textarea v-model="draftText" class="draft-textarea" rows="10"></textarea>
+        </label>
+
+        <div v-if="enrollError" class="error-msg">{{ enrollError }}</div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" @click="closeModal">닫기</button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            :disabled="enrolling"
+            @click="confirmEnrollment"
+          >
+            {{ enrolling ? '접수 중...' : '이 내용으로 신청 접수' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -81,6 +108,9 @@ const auth = useAuthStore()
 const enrolling = ref(false)
 const enrollError = ref('')
 const enrollmentStatus = ref('NONE') // NONE | PENDING | ACTIVE
+
+const modalOpen = ref(false)
+const draftText = ref('')
 
 const course = computed(() => courseStore.selectedCourse)
 const loading = computed(() => courseStore.loading)
@@ -123,7 +153,7 @@ const buttonLabel = computed(() => {
   if (isInstructor.value) return '기관 계정은 신청 불가'
   if (enrollmentStatus.value === 'ACTIVE') return '신청 현황 보기'
   if (enrollmentStatus.value === 'PENDING') return '심사 대기 중'
-  return '지원 신청하기'
+  return 'AI 서류 자동 작성'
 })
 
 const buttonDisabled = computed(() => {
@@ -146,8 +176,38 @@ const helperText = computed(() => {
     return '신청이 접수되어 심사가 진행 중입니다. 결과는 신청 현황에서 확인할 수 있습니다.'
   }
 
-  return '신청 시 담당자 심사 후 결과가 안내됩니다.'
+  return 'AI가 프로필 정보를 바탕으로 신청 서류 초안을 자동으로 작성해 드립니다.'
 })
+
+function buildDraftText() {
+  const raw = localStorage.getItem('user_profile')
+  let profile = null
+
+  try {
+    profile = raw ? JSON.parse(raw) : null
+  } catch (e) {
+    console.error('[CourseDetail] 저장된 프로필 파싱 실패:', e)
+  }
+
+  const applicant =
+    profile?.userType === 'YOUTH'
+      ? `${profile?.name || auth.user?.name || '신청자'} (청년, ${profile?.youth?.age ?? '-'}세)`
+      : `${profile?.name || auth.user?.name || '신청 기업'} (${profile?.company?.industry || '업종 미입력'}, 상시근로자 ${profile?.company?.employeeCount ?? '-'}명)`
+
+  return `[신청 서류 초안]
+
+- 지원 기업/신청자 정보: ${applicant}
+- 이메일: ${profile?.email || auth.user?.email || '-'}
+- 신청 사업명: ${course.value?.title}
+- 지원 분야: ${displayCategory.value}
+- 지원 한도액: ₩${displayPrice.value}
+
+위 사업에 대한 지원을 신청합니다. AI가 자동으로 생성한 초안이며, 제출 전 자유롭게 수정하실 수 있습니다.`
+}
+
+function closeModal() {
+  modalOpen.value = false
+}
 
 async function loadEnrollmentStatus() {
   if (!auth.user?.id || !course.value?.id || isInstructor.value) {
@@ -207,11 +267,18 @@ async function handlePrimaryAction() {
     return
   }
 
+  draftText.value = buildDraftText()
+  modalOpen.value = true
+}
+
+async function confirmEnrollment() {
+  enrollError.value = ''
   enrolling.value = true
 
   try {
     await enrollmentApi.enroll(course.value.id)
     enrollmentStatus.value = 'PENDING'
+    modalOpen.value = false
     alert('신청이 완료되었습니다 (심사 대기)')
     router.push('/enrollments')
   } catch (e) {
@@ -408,5 +475,76 @@ watch(
   .detail-hero-inner {
     grid-template-columns: 1fr;
   }
+}
+
+/* AI 서류 자동 작성 모달 */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 200;
+}
+
+.modal-box {
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.modal-subtitle {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-bottom: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.draft-textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+  resize: vertical;
+}
+
+.draft-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 </style>

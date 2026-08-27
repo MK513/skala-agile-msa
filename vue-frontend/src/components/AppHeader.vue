@@ -10,6 +10,7 @@
       <!-- 네비게이션 (라우트 경로는 백엔드 도메인 그대로, 라벨만 새 도메인) -->
       <nav class="nav-links" v-if="auth.isAuthenticated">
         <router-link to="/courses" class="nav-link" :class="{ active: $route.path.startsWith('/courses') }">지원사업</router-link>
+        <router-link to="/recommend-list" class="nav-link" :class="{ active: $route.path === '/recommend-list' }">AI 맞춤 매칭</router-link>
         <router-link to="/enrollments" class="nav-link" :class="{ active: $route.path === '/enrollments' }">내 신청 현황</router-link>
       </nav>
 

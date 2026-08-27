@@ -51,6 +51,18 @@ const routes = [
     name: 'MyPage',
     component: () => import('@/views/MyPageView.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/profile-setup',
+    name: 'ProfileSetup',
+    component: () => import('@/views/ProfileSetupView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/recommend-list',
+    name: 'RecommendList',
+    component: () => import('@/views/RecommendListView.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 
