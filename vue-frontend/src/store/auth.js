@@ -46,7 +46,8 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.removeItem('user')
 
     if (redirect) {
-      window.location.href = '/login'
+      // '/login'은 vite 프록시가 백엔드로 넘기므로 전체 새로고침 이동 시 auth-server 페이지가 뜸 → 랜딩으로 이동
+      window.location.href = '/'
     }
   }
 
