@@ -34,18 +34,6 @@
       </div>
     </section>
 
-    <!-- 테스트용 바로가기 -->
-    <section class="quicklinks-section">
-      <div class="section-inner">
-        <h2 class="section-title center">지원사업 화면 바로가기 (테스트용)</h2>
-        <div class="quicklinks-row">
-          <router-link to="/courses" class="btn btn-outline btn-lg">지원사업 목록 보기</router-link>
-          <router-link to="/courses/new" class="btn btn-outline btn-lg">지원사업 등록하기</router-link>
-          <router-link to="/enrollments" class="btn btn-outline btn-lg">신청 현황 보기</router-link>
-        </div>
-      </div>
-    </section>
-
     <!-- 주요 지원사업 (DB 연동) -->
     <section class="popular-section">
       <div class="section-inner">
@@ -266,15 +254,6 @@ const features = [
 }
 .compass { width: 96px; height: 96px; }
 .hero-card-text { font-size: 16px; font-weight: 700; letter-spacing: 1px; }
-
-/* 테스트용 바로가기 */
-.quicklinks-section { padding: 40px 0 0; }
-.quicklinks-row {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
 
 /* 지원사업 섹션 */
 .popular-section { padding: 64px 0; }
