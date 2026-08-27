@@ -45,7 +45,9 @@ public class EnrollmentService {
 
         Enrollment enrollment = enrollmentWriteService.createPendingEnrollment(userId, courseId);
 
-        paymentServiceClient.requestPayment(userId, courseId, BigDecimal.valueOf(99000));
+        // 교부 확정액 = 지원사업의 지원 한도액(price)
+        BigDecimal amount = toBigDecimal(courseServiceClient.getCourse(courseId).get("price"));
+        paymentServiceClient.requestPayment(userId, courseId, amount);
 
         log.info("[EnrollmentService] 수강신청 완료 (결제 대기) - enrollmentId: {}", enrollment.getId());
         return EnrollmentDto.EnrollmentResponse.from(enrollment);
@@ -155,6 +157,13 @@ public class EnrollmentService {
         if (value == null) return null;
         if (value instanceof Number number) return number.intValue();
         return Integer.parseInt(value.toString());
+    }
+
+    private BigDecimal toBigDecimal(Object value) {
+        if (value == null) return BigDecimal.ZERO;
+        if (value instanceof BigDecimal bigDecimal) return bigDecimal;
+        if (value instanceof Number number) return new BigDecimal(number.toString());
+        return new BigDecimal(value.toString());
     }
 
     private String firstNonNull(String... values) {
