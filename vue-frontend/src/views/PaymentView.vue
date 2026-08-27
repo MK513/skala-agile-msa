@@ -2,25 +2,6 @@
   <div class="page-wrapper">
     <AppHeader />
     <div class="page-layout">
-      <!-- 사이드바 (팀 공통 패턴) -->
-      <aside class="sidebar">
-        <div class="sidebar-section">
-          <div class="sidebar-label">메뉴</div>
-          <router-link to="/courses" class="sidebar-item">
-            <span class="si-icon">📚</span> 지원사업 목록
-          </router-link>
-          <router-link v-if="!auth.isInstructor" to="/enrollments" class="sidebar-item">
-            <span class="si-icon">✅</span> 신청 현황
-          </router-link>
-          <router-link to="/payments" class="sidebar-item active">
-            <span class="si-icon">💰</span> 교부 내역
-          </router-link>
-          <router-link to="/mypage" class="sidebar-item">
-            <span class="si-icon">⭐</span> 마이페이지
-          </router-link>
-        </div>
-      </aside>
-
       <main class="main-content">
         <h1 class="page-title">교부 내역</h1>
         <p class="page-desc">선정 확정된 지원사업의 교부 확정 내역입니다. 신청이 승인되면 교부 결정번호가 발급되고 신청 상태가 <strong>선정 확정</strong>으로 전환됩니다.</p>
@@ -175,8 +156,7 @@ onMounted(async () => {
   margin: 0 auto;
   padding: 32px 24px;
   display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 28px;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .sidebar { display: flex; flex-direction: column; gap: 8px; }

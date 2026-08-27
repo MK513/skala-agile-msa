@@ -2,35 +2,6 @@
   <div class="page-wrapper">
     <AppHeader />
     <div class="page-layout">
-      <aside class="sidebar">
-        <div class="sidebar-section">
-          <div class="sidebar-label">메뉴</div>
-
-          <router-link to="/courses" class="sidebar-item">
-            <span class="si-icon">📚</span> 지원사업 목록
-          </router-link>
-
-          <router-link
-            v-if="!isInstructor"
-            to="/enrollments"
-            class="sidebar-item"
-          >
-            <span class="si-icon">✅</span> 신청 현황
-          </router-link>
-
-          <router-link to="/mypage" class="sidebar-item active">
-            <span class="si-icon">⭐</span> 마이페이지
-          </router-link>
-        </div>
-
-        <div class="sidebar-section">
-          <div class="sidebar-label">계정</div>
-          <button class="sidebar-item sidebar-btn" @click="handleLogout">
-            <span class="si-icon">🚪</span> 로그아웃
-          </button>
-        </div>
-      </aside>
-
       <main class="main-content">
         <!-- 프로필 카드 -->
         <div class="profile-card fade-in-up">
@@ -228,14 +199,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import CourseCard from '@/components/CourseCard.vue'
 import { useAuthStore } from '@/store/auth.js'
 import { enrollmentApi } from '@/api/enrollment.js'
 import { courseApi } from '@/api/course.js'
 
-const router = useRouter()
 const auth = useAuthStore()
 
 const isInstructor = computed(() => auth.user?.role === 'INSTRUCTOR')
@@ -262,11 +231,6 @@ const totalEnrollmentCount = computed(() =>
     return sum + (Number.isNaN(count) ? 0 : count)
   }, 0)
 )
-
-function handleLogout() {
-  auth.logout()
-  router.push('/')
-}
 
 function formatPrice(price) {
   const value = Number(price ?? 0)
@@ -461,8 +425,7 @@ onMounted(async () => {
   margin: 0 auto;
   padding: 32px 24px;
   display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 28px;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .sidebar {
