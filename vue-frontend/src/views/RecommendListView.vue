@@ -154,7 +154,8 @@ async function loadRecommendations() {
     const rawList = extractList(res.data, ['recommendedCourses', 'data'])
 
     if (rawList.length) {
-      courses.value = sortByInterest(rawList.map((c) => courseStore.normalizeCourse(c)))
+      const normalized = rawList.map((c) => courseStore.normalizeCourse(c))
+      courses.value = sortByInterest(filterByInterest(normalized))
     } else {
       coldStart.value = true
       courses.value = filterByInterest(await loadColdStartCourses())
