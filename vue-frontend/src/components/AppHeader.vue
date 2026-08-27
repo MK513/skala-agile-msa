@@ -10,7 +10,6 @@
       <!-- 네비게이션 -->
       <nav class="nav-links" v-if="auth.isAuthenticated">
         <router-link to="/courses" class="nav-link" :class="{ active: $route.path.startsWith('/courses') }">강의</router-link>
-        <router-link v-if="!auth.isInstructor" to="/apply" class="nav-link" :class="{ active: $route.path === '/apply' }">지원 신청</router-link>
         <router-link to="/enrollments" class="nav-link" :class="{ active: $route.path === '/enrollments' }">내 학습</router-link>
       </nav>
 
