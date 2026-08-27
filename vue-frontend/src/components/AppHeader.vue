@@ -9,8 +9,8 @@
 
       <!-- 네비게이션 -->
       <nav class="nav-links" v-if="auth.isAuthenticated">
-        <router-link to="/courses" class="nav-link" :class="{ active: $route.path.startsWith('/courses') }">강의</router-link>
-        <router-link to="/enrollments" class="nav-link" :class="{ active: $route.path === '/enrollments' }">내 학습</router-link>
+        <router-link to="/courses" class="nav-link" :class="{ active: $route.path.startsWith('/courses') }">지원사업</router-link>
+        <router-link to="/enrollments" class="nav-link" :class="{ active: $route.path === '/enrollments' }">신청 현황</router-link>
       </nav>
 
       <!-- 우측 액션 -->

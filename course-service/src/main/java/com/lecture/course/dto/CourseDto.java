@@ -19,16 +19,16 @@ public class CourseDto {
     @Builder
     public static class CreateRequest {
 
-        @NotBlank(message = "강의 제목은 필수입니다")
+        @NotBlank(message = "사업명은 필수입니다")
         private String title;
 
         private String description;
 
-        @NotNull(message = "카테고리는 필수입니다")
+        @NotNull(message = "지원 분야는 필수입니다")
         private Course.Category category;
 
-        @NotNull(message = "가격은 필수입니다")
-        @PositiveOrZero(message = "가격은 0 이상이어야 합니다")
+        @NotNull(message = "지원 한도액은 필수입니다")
+        @PositiveOrZero(message = "지원 한도액은 0 이상이어야 합니다")
         private BigDecimal price;
     }
 
