@@ -402,7 +402,6 @@ async function confirmEnrollment() {
     await enrollmentApi.enroll(course.value.id)
     enrollmentStatus.value = 'PENDING'
     modalOpen.value = false
-    alert('신청이 완료되었습니다 (심사 대기)')
     router.push('/enrollments')
   } catch (e) {
     console.error('[CourseDetail] enroll failed:', e)
