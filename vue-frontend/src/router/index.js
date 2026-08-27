@@ -14,6 +14,12 @@ const routes = [
     meta: { guestOnly: true }
   },
   {
+    path: '/register',
+    name: 'Register',
+    component: () => import('@/views/RegisterView.vue'),
+    meta: { guestOnly: true }
+  },
+  {
     path: '/callback',
     name: 'Callback',
     component: () => import('@/views/CallbackView.vue')
@@ -21,8 +27,7 @@ const routes = [
   {
     path: '/courses',
     name: 'CourseList',
-    component: () => import('@/views/CourseListView.vue'),
-    meta: { requiresAuth: true }
+    component: () => import('@/views/CourseListView.vue')
   },
   {
     path: '/courses/new',
@@ -33,8 +38,7 @@ const routes = [
   {
     path: '/courses/:id(\\d+)',
     name: 'CourseDetail',
-    component: () => import('@/views/CourseDetailView.vue'),
-    meta: { requiresAuth: true }
+    component: () => import('@/views/CourseDetailView.vue')
   },
   {
     path: '/enrollments',

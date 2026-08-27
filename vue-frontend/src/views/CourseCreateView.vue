@@ -13,7 +13,7 @@
             class="sidebar-item"
             :class="{ active: $route.path === '/courses' }"
           >
-            <span class="si-icon">📚</span> 강의 목록
+            <span class="si-icon">📚</span> 지원사업 목록
           </router-link>
 
           <router-link
@@ -21,7 +21,7 @@
             class="sidebar-item"
             :class="{ active: $route.path === '/courses/new' }"
           >
-            <span class="si-icon">✍️</span> 강의 등록
+            <span class="si-icon">✍️</span> 지원사업 등록
           </router-link>
 
           <router-link to="/mypage" class="sidebar-item">
@@ -44,41 +44,41 @@
       <main class="main-content">
         <div class="content-header">
           <div>
-            <h1 class="page-title">강의 등록</h1>
-            <p class="page-subtitle">강사 계정으로 새로운 강의를 등록합니다.</p>
+            <h1 class="page-title">지원사업 등록</h1>
+            <p class="page-subtitle">지자체·수행기관 계정으로 새로운 지원사업을 등록합니다.</p>
           </div>
         </div>
 
         <div class="form-card">
           <form class="course-form" @submit.prevent="handleSubmit">
             <div class="form-group">
-              <label class="form-label" for="title">강의명</label>
+              <label class="form-label" for="title">사업명</label>
               <input
                 id="title"
                 v-model.trim="form.title"
                 type="text"
                 class="form-input"
-                placeholder="예: Cloud Native App기반 Web Service 개발"
+                placeholder="예: 청년 창업 지원사업"
                 maxlength="100"
               />
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="description">강의 설명</label>
+              <label class="form-label" for="description">사업 설명</label>
               <textarea
                 id="description"
                 v-model.trim="form.description"
                 class="form-textarea"
                 rows="6"
-                placeholder="강의 소개, 학습 목표, 대상 등을 입력해 주세요."
+                placeholder="지원 대상, 신청 자격, 지원 내용 등을 입력해 주세요."
               ></textarea>
             </div>
 
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label" for="category">카테고리</label>
+                <label class="form-label" for="category">지원 분야</label>
                 <select id="category" v-model="form.category" class="form-select">
-                  <option disabled value="">카테고리를 선택하세요</option>
+                  <option disabled value="">지원 분야를 선택하세요</option>
                   <option
                     v-for="option in categoryOptions"
                     :key="option.value"
@@ -90,15 +90,15 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label" for="price">가격</label>
+                <label class="form-label" for="price">지원 한도액 (원)</label>
                 <input
                   id="price"
                   v-model.number="form.price"
                   type="number"
                   min="0"
-                  step="1000"
+                  step="10000"
                   class="form-input"
-                  placeholder="예: 50000"
+                  placeholder="예: 5000000"
                 />
               </div>
             </div>
@@ -122,7 +122,7 @@
 
               <button type="submit" class="btn btn-primary" :disabled="submitting">
                 <span v-if="submitting">등록 중...</span>
-                <span v-else>강의 등록</span>
+                <span v-else>지원사업 등록</span>
               </button>
             </div>
           </form>
@@ -155,10 +155,14 @@ const submitError = ref('')
 const submitSuccess = ref('')
 
 const categoryOptions = [
-  { label: '백엔드', value: 'BACKEND' },
-  { label: '프론트엔드', value: 'FRONTEND' },
-  { label: 'DevOps', value: 'DEVOPS' },
-  { label: 'AI / 데이터', value: 'DATA_SCIENCE' }
+  { label: '고용', value: 'EMPLOYMENT' },
+  { label: 'R&D', value: 'RND' },
+  { label: '수출', value: 'EXPORT' },
+  { label: '설비', value: 'FACILITY' },
+  { label: '주거', value: 'HOUSING' },
+  { label: '청년', value: 'YOUTH' },
+  { label: '창업', value: 'STARTUP' },
+  { label: '기타', value: 'OTHER' }
 ]
 
 function handleLogout() {
@@ -170,33 +174,33 @@ function validateForm() {
   validationError.value = ''
 
   if (!auth.user || auth.user.role !== 'INSTRUCTOR') {
-    validationError.value = '강사 계정만 강의를 등록할 수 있습니다.'
+    validationError.value = '지자체·수행기관 계정만 지원사업을 등록할 수 있습니다.'
     return false
   }
 
   if (!form.title) {
-    validationError.value = '강의명을 입력해 주세요.'
+    validationError.value = '사업명을 입력해 주세요.'
     return false
   }
 
   if (!form.description) {
-    validationError.value = '강의 설명을 입력해 주세요.'
+    validationError.value = '사업 설명을 입력해 주세요.'
     return false
   }
 
   if (!form.category) {
-    validationError.value = '카테고리를 선택해 주세요.'
+    validationError.value = '지원 분야를 선택해 주세요.'
     return false
   }
 
   if (form.price === null || form.price === undefined || form.price === '') {
-    validationError.value = '가격을 입력해 주세요.'
+    validationError.value = '지원 한도액을 입력해 주세요.'
     return false
   }
 
   const price = Number(form.price)
   if (Number.isNaN(price) || price < 0) {
-    validationError.value = '가격은 0 이상의 숫자로 입력해 주세요.'
+    validationError.value = '지원 한도액은 0 이상의 숫자로 입력해 주세요.'
     return false
   }
 
@@ -222,26 +226,16 @@ async function handleSubmit() {
     const res = await courseApi.create(payload)
     console.log('[CourseCreate] create response =', res.data)
 
-    submitSuccess.value = '강의가 성공적으로 등록되었습니다.'
+    submitSuccess.value = '지원사업이 성공적으로 등록되었습니다.'
 
-    const createdCourseId =
-      res.data?.data?.id ??
-      res.data?.id
-
-    if (createdCourseId) {
-      setTimeout(() => {
-        router.push(`/courses/${createdCourseId}`)
-      }, 500)
-    } else {
-      setTimeout(() => {
-        router.push('/courses')
-      }, 500)
-    }
+    setTimeout(() => {
+      router.push('/courses')
+    }, 500)
   } catch (error) {
     console.error('[CourseCreate] create failed:', error)
     submitError.value =
       error.response?.data?.message ||
-      '강의 등록에 실패했습니다.'
+      '지원사업 등록에 실패했습니다.'
   } finally {
     submitting.value = false
   }

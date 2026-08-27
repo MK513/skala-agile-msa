@@ -1,0 +1,191 @@
+/* 지원나침반 — auth-server 로그인 페이지 브랜딩
+ * Spring Security 기본 로그인 페이지(default-ui.css) 오버라이드.
+ * BOOT-INF/classes 가 lib 보다 클래스패스 우선순위가 높아 이 파일이 적용됨. */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  background:
+    radial-gradient(ellipse 70% 45% at 85% 8%, rgba(255, 255, 255, 0.10), transparent),
+    linear-gradient(160deg, #123f70 0%, #185FA5 55%, #1e7bc4 100%);
+  -webkit-font-smoothing: antialiased;
+}
+
+.content {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.login-form,
+.logout-form {
+  width: 100%;
+  max-width: 400px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.10);
+  padding: 40px;
+}
+
+/* "Please sign in" → 브랜드 + 한글 타이틀 */
+.login-form h2 {
+  font-size: 0;
+  line-height: 0;
+  margin-bottom: 28px;
+}
+.login-form h2::before {
+  content: '지원나침반';
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: #185FA5;
+  letter-spacing: 0.5px;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+.login-form h2::after {
+  content: '통합 로그인';
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  letter-spacing: -0.4px;
+  line-height: 1.35;
+}
+
+/* 입력 필드 + 한글 라벨 */
+.login-form p {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.login-form p::before {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+.login-form p:nth-of-type(1)::before { content: '이메일'; }
+.login-form p:nth-of-type(2)::before { content: '비밀번호'; }
+
+.screenreader {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+input[type='text'],
+input[type='password'] {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #1a1a2e;
+  background: #ffffff;
+  outline: none;
+  transition: all 0.2s ease;
+}
+input[type='text']:hover,
+input[type='password']:hover {
+  border-color: #cbd5e1;
+}
+input[type='text']:focus,
+input[type='password']:focus {
+  border-color: #185FA5;
+  box-shadow: 0 0 0 3px #E6F1FB;
+}
+/* 영문 placeholder(Username/Password)는 라벨과 겹치므로 숨김 */
+input::placeholder {
+  color: transparent;
+}
+
+/* "Sign in" → "로그인" */
+button.primary {
+  width: 100%;
+  padding: 13px;
+  margin-top: 6px;
+  border: none;
+  border-radius: 10px;
+  background: #185FA5;
+  color: #ffffff;
+  font-size: 0;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+button.primary::after {
+  content: '로그인';
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+}
+button.primary:hover {
+  background: #0C447C;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+button.primary:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(24, 95, 165, 0.6);
+}
+
+/* 에러/로그아웃 알림 — 영문 메시지를 한글로 교체 */
+.alert {
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: 0;
+  line-height: 0;
+}
+.alert::after {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.alert-danger {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+.alert-danger::after {
+  content: '이메일 또는 비밀번호가 올바르지 않습니다.';
+  color: #dc2626;
+}
+.alert-success {
+  background: #E1F5EE;
+  border: 1px solid #a7e3cf;
+}
+.alert-success::after {
+  content: '로그아웃되었습니다.';
+  color: #0F6E56;
+}
+
+/* 카드 아래 안내 문구 */
+.content::after {
+  content: '로그인하면 지원사업 신청 화면으로 돌아갑니다.';
+  margin-top: 16px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+@media (max-width: 480px) {
+  .login-form,
+  .logout-form {
+    padding: 28px 20px;
+  }
+}

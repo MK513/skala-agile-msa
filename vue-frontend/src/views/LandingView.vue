@@ -6,17 +6,17 @@
     <section class="hero">
       <div class="hero-inner">
         <div class="hero-content fade-in-up">
-          <span class="hero-badge">MSA 기반 교육 플랫폼</span>
-          <h1 class="hero-title">배움을 더 스마트하게,<br>커리어를 더 빠르게</h1>
-          <p class="hero-desc">개발, 디자인, 비즈니스 분야의 전문가 강의를 수강하고 실력을 키워보세요.</p>
+          <span class="hero-badge">MSA 기반 정부 지원 대행 서비스</span>
+          <h1 class="hero-title">놓치기 쉬운 지원사업,<br>한곳에서 찾고 신청하세요</h1>
+          <p class="hero-desc">고용, R&D, 수출, 설비 등 분야별 정부·지자체 지원사업을 확인하고 온라인으로 간편하게 신청하세요.</p>
           <div class="hero-actions">
             <router-link to="/login" class="btn btn-primary btn-lg">무료로 시작하기</router-link>
-            <router-link to="/courses" class="btn btn-outline btn-lg">강의 둘러보기</router-link>
+            <router-link to="/courses" class="btn btn-outline btn-lg">지원사업 둘러보기</router-link>
           </div>
           <div class="hero-stats">
-            <div class="stat"><span class="stat-num">1,200+</span><span class="stat-label">강의</span></div>
-            <div class="stat"><span class="stat-num">340+</span><span class="stat-label">강사</span></div>
-            <div class="stat"><span class="stat-num">28,000+</span><span class="stat-label">수강생</span></div>
+            <div class="stat"><span class="stat-num">1,200+</span><span class="stat-label">지원사업</span></div>
+            <div class="stat"><span class="stat-num">340+</span><span class="stat-label">등록기관</span></div>
+            <div class="stat"><span class="stat-num">28,000+</span><span class="stat-label">신청 건수</span></div>
           </div>
         </div>
         <div class="hero-visual fade-in">
@@ -25,23 +25,34 @@
       </div>
     </section>
 
-    <!-- 인기 강의 -->
+    <!-- 테스트용 바로가기 -->
+    <section class="quicklinks-section">
+      <div class="section-inner">
+        <h2 class="section-title center">지원사업 화면 바로가기 (테스트용)</h2>
+        <div class="quicklinks-row">
+          <router-link to="/courses" class="btn btn-outline btn-lg">지원사업 목록 보기</router-link>
+          <router-link to="/courses/new" class="btn btn-outline btn-lg">지원사업 등록하기</router-link>
+          <router-link to="/enrollments" class="btn btn-outline btn-lg">신청 현황 보기</router-link>
+        </div>
+      </div>
+    </section>
+
+    <!-- 인기 지원사업 -->
     <section class="popular-section">
       <div class="section-inner">
         <div class="section-header">
-          <h2 class="section-title">인기 강의</h2>
-          <router-link to="/login" class="section-link">전체 보기 →</router-link>
+          <h2 class="section-title">인기 지원사업</h2>
+          <router-link to="/courses" class="section-link">전체 보기 →</router-link>
         </div>
         <div class="course-grid">
           <div v-for="course in featuredCourses" :key="course.id" class="course-card-landing">
             <div class="card-thumb" :class="course.thumbBg">
-              <img :src="course.thumbSrc" :alt="course.title" class="thumb-img" />
+              <span class="thumb-placeholder">{{ course.category.charAt(0) }}</span>
             </div>
             <div class="card-body">
               <span class="badge" :class="course.badgeClass">{{ course.category }}</span>
               <h3 class="card-title">{{ course.title }}</h3>
               <div class="card-meta">
-                <span class="instructor">{{ course.instructor }}</span>
                 <span class="price">{{ course.price }}</span>
               </div>
             </div>
@@ -68,7 +79,7 @@
     <section class="cta-section">
       <div class="cta-inner">
         <h2>지금 바로 시작하세요</h2>
-        <p>수천 명의 개발자들이 LearnNexus와 함께 성장하고 있습니다.</p>
+        <p>수천 개의 지원사업이 LearnNexus에 등록되어 있습니다.</p>
         <router-link to="/login" class="btn btn-primary btn-lg">무료로 시작하기</router-link>
       </div>
     </section>
@@ -89,27 +100,20 @@
 <script setup>
 import AppHeader from '@/components/AppHeader.vue'
 
-import springImg   from '@/assets/images/courses/spring_boot.png'
-import vueImg      from '@/assets/images/courses/vue_js.png'
-import k8sImg      from '@/assets/images/courses/kubernetes.png'
-import dockerImg   from '@/assets/images/courses/docker.png'
-import pythonImg   from '@/assets/images/courses/python.png'
-import genaiImg    from '@/assets/images/courses/generative_ai.png'
-
 const featuredCourses = [
-  { id:1, title:'Spring Boot MSA 완성', category:'백엔드',    instructor:'김강사', price:'₩89,000', thumbSrc: springImg, thumbBg:'thumb-teal',   badgeClass:'badge-teal'   },
-  { id:2, title:'Vue 3 실전 프로젝트',  category:'프론트엔드', instructor:'이강사', price:'₩69,000', thumbSrc: vueImg,    thumbBg:'thumb-teal',   badgeClass:'badge-teal'   },
-  { id:3, title:'Kubernetes 운영 가이드',category:'DevOps',   instructor:'박강사', price:'₩99,000', thumbSrc: k8sImg,    thumbBg:'thumb-blue',   badgeClass:'badge-blue'   },
-  { id:4, title:'Docker 컨테이너 실전', category:'DevOps',    instructor:'정강사', price:'₩79,000', thumbSrc: dockerImg, thumbBg:'thumb-blue',   badgeClass:'badge-blue'   },
-  { id:5, title:'Python 데이터 분석',   category:'데이터',    instructor:'최강사', price:'₩59,000', thumbSrc: pythonImg, thumbBg:'thumb-purple', badgeClass:'badge-purple' },
-  { id:6, title:'Generative AI 실전',   category:'AI',        instructor:'한강사', price:'₩75,000', thumbSrc: genaiImg,  thumbBg:'thumb-pink',   badgeClass:'badge-pink'   },
+  { id:1, title:'청년 창업 지원사업',       category:'창업', price:'한도 ₩50,000,000', thumbBg:'thumb-blue',   badgeClass:'badge-blue'   },
+  { id:2, title:'중소기업 고용 장려금',     category:'고용', price:'한도 ₩20,000,000', thumbBg:'thumb-teal',   badgeClass:'badge-teal'   },
+  { id:3, title:'수출 바우처 지원사업',     category:'수출', price:'한도 ₩30,000,000', thumbBg:'thumb-purple', badgeClass:'badge-purple' },
+  { id:4, title:'스마트공장 설비 지원사업', category:'설비', price:'한도 ₩100,000,000',thumbBg:'thumb-amber',  badgeClass:'badge-amber'  },
+  { id:5, title:'청년 월세 지원사업',       category:'주거', price:'한도 ₩2,400,000',  thumbBg:'thumb-pink',   badgeClass:'badge-pink'   },
+  { id:6, title:'R&D 기술개발 지원사업',    category:'R&D',  price:'한도 ₩80,000,000', thumbBg:'thumb-blue',   badgeClass:'badge-blue'   },
 ]
 
 const features = [
-  { icon:'🚀', title:'실무 중심 커리큘럼', desc:'현업 전문가가 직접 설계한 실무 중심 강의로 빠르게 성장하세요.' },
-  { icon:'🎯', title:'맞춤 강의 추천', desc:'AI 기반 추천 시스템이 수강 이력을 분석해 딱 맞는 강의를 추천합니다.' },
-  { icon:'💳', title:'간편한 수강 신청', desc:'원클릭 결제와 즉시 수강으로 학습을 바로 시작하세요.' },
-  { icon:'📱', title:'언제 어디서나', desc:'PC, 태블릿, 모바일 어디서든 끊김 없이 학습하세요.' },
+  { icon:'🚀', title:'다양한 지원사업', desc:'고용, R&D, 수출, 설비 등 분야별 정부·지자체 지원사업을 한곳에서 확인하세요.' },
+  { icon:'🎯', title:'맞춤 지원사업 추천', desc:'AI 기반 추천 시스템이 신청 이력을 분석해 딱 맞는 지원사업을 추천합니다.' },
+  { icon:'📝', title:'간편한 온라인 신청', desc:'복잡한 서류 없이 온라인으로 빠르게 지원 신청을 접수하세요.' },
+  { icon:'📱', title:'언제 어디서나', desc:'PC, 태블릿, 모바일 어디서든 신청 현황을 확인하세요.' },
 ]
 </script>
 
@@ -182,6 +186,15 @@ const features = [
   box-shadow: var(--shadow-lg);
 }
 
+/* 테스트용 바로가기 */
+.quicklinks-section { padding: 48px 0 0; }
+.quicklinks-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 /* 강의 섹션 */
 .popular-section { padding: 64px 0; }
 .section-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
@@ -221,13 +234,13 @@ const features = [
 }
 .thumb-teal   { background: #E1F5EE; }
 .thumb-blue   { background: #E6F1FB; }
+.thumb-amber  { background: #FAEEDA; }
 .thumb-purple { background: #EEEDFE; }
 .thumb-pink   { background: #FBEAF0; }
-.thumb-img { width: 100%; height: 100%; object-fit: contain; padding: 14px; }
+.thumb-placeholder { font-size: 32px; font-weight: 700; color: var(--color-text-muted); }
 .card-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
 .card-title { font-size: 14px; font-weight: 600; color: var(--color-text-primary); line-height: 1.4; }
-.card-meta { display: flex; justify-content: space-between; align-items: center; }
-.instructor { font-size: 12px; color: var(--color-text-secondary); }
+.card-meta { display: flex; justify-content: flex-end; align-items: center; }
 .price { font-size: 14px; font-weight: 600; color: var(--color-primary); }
 
 /* 특징 */
