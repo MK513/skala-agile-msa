@@ -11,6 +11,7 @@
           <p class="hero-desc">개발, 디자인, 비즈니스 분야의 전문가 강의를 수강하고 실력을 키워보세요.</p>
           <div class="hero-actions">
             <router-link to="/login" class="btn btn-primary btn-lg">무료로 시작하기</router-link>
+            <router-link to="/apply" class="btn btn-primary btn-lg">지원 신청하기</router-link>
             <router-link to="/courses" class="btn btn-outline btn-lg">강의 둘러보기</router-link>
           </div>
           <div class="hero-stats">

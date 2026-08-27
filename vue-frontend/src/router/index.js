@@ -37,6 +37,13 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/apply',
+    name: 'Application',
+    component: () => import('@/views/ApplicationView.vue'),
+    // TODO: 로그인 페이지 구현 완료 후 requiresAuth를 다시 추가하고 임시 모킹을 제거한다.
+    meta: { studentOnly: true }
+  },
+  {
     path: '/enrollments',
     name: 'Enrollment',
     component: () => import('@/views/EnrollmentView.vue'),
@@ -71,6 +78,10 @@ router.beforeEach((to) => {
   }
 
   if (to.meta.instructorOnly && auth.user?.role !== 'INSTRUCTOR') {
+    return { name: 'CourseList' }
+  }
+
+  if (to.meta.studentOnly && auth.user?.role === 'INSTRUCTOR') {
     return { name: 'CourseList' }
   }
 })
