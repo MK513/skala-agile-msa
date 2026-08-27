@@ -6,13 +6,13 @@ from datetime import datetime
 
 
 class CourseCategory(str, Enum):
-    BACKEND = "BACKEND"
-    FRONTEND = "FRONTEND"
-    DEVOPS = "DEVOPS"
-    DATA_SCIENCE = "DATA_SCIENCE"
-    MOBILE = "MOBILE"
-    SECURITY = "SECURITY"
-    DATABASE = "DATABASE"
+    EMPLOYMENT = "EMPLOYMENT"
+    RND = "RND"
+    EXPORT = "EXPORT"
+    FACILITY = "FACILITY"
+    HOUSING = "HOUSING"
+    YOUTH = "YOUTH"
+    STARTUP = "STARTUP"
     OTHER = "OTHER"
 
 
