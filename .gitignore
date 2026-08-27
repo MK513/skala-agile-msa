@@ -44,3 +44,6 @@ HELP.md
 *.part.*
 infra-images.tar
 msa-lecture-images.*
+
+# ---- Claude Code ----
+.claude/
