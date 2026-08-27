@@ -138,7 +138,12 @@ function handleLogout() {
 }
 
 onMounted(() => {
-  courseStore.fetchCourses()
+  // 상세에서 뒤로 돌아와도 선택된 카테고리 필터 유지
+  if (courseStore.selectedCategory === '전체') {
+    courseStore.fetchCourses()
+  } else {
+    courseStore.fetchCoursesByCategory(courseStore.selectedCategory)
+  }
 })
 </script>
 

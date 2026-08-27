@@ -45,9 +45,9 @@
               </p>
 
               <ul class="enroll-info-list">
-                <li>✅ 온라인 신청 접수</li>
-                <li>✅ 담당자 서류 심사</li>
-                <li>✅ 심사 결과 알림</li>
+                <li><span class="check-mark" aria-hidden="true">✓</span> 온라인 신청 접수</li>
+                <li><span class="check-mark" aria-hidden="true">✓</span> 담당자 서류 심사</li>
+                <li><span class="check-mark" aria-hidden="true">✓</span> 심사 결과 알림</li>
               </ul>
             </div>
           </div>
@@ -424,6 +424,14 @@ watch(
 .enroll-info-list li {
   font-size: 13px;
   color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.check-mark {
+  font-weight: 700;
+  color: var(--color-text-primary);
 }
 
 .error-msg {

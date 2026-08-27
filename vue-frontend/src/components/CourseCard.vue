@@ -3,7 +3,7 @@
     <!-- 썸네일 -->
     <div class="card-thumb" :class="thumbBg">
       <img v-if="thumbSrc" :src="thumbSrc" :alt="course.title" class="thumb-img" />
-      <div v-else class="thumb-placeholder">{{ course.category?.charAt(0) }}</div>
+      <div v-else class="thumb-placeholder">{{ thumbEmoji }}</div>
     </div>
 
     <!-- 내용 -->
@@ -28,19 +28,20 @@ const props = defineProps({
 })
 
 const categoryConfig = {
-  '고용': { bg: 'thumb-teal',   badge: 'badge-teal' },
-  'R&D':  { bg: 'thumb-blue',   badge: 'badge-blue' },
-  '수출': { bg: 'thumb-purple', badge: 'badge-purple' },
-  '설비': { bg: 'thumb-amber',  badge: 'badge-amber' },
-  '주거': { bg: 'thumb-pink',   badge: 'badge-pink' },
-  '청년': { bg: 'thumb-teal',   badge: 'badge-teal' },
-  '창업': { bg: 'thumb-blue',   badge: 'badge-blue' },
-  '기타': { bg: 'thumb-gray',   badge: 'badge-gray' },
+  '고용': { bg: 'thumb-teal',   badge: 'badge-teal',   emoji: '💼' },
+  'R&D':  { bg: 'thumb-blue',   badge: 'badge-blue',   emoji: '🔬' },
+  '수출': { bg: 'thumb-purple', badge: 'badge-purple', emoji: '🚢' },
+  '설비': { bg: 'thumb-amber',  badge: 'badge-amber',  emoji: '🏭' },
+  '주거': { bg: 'thumb-pink',   badge: 'badge-pink',   emoji: '🏠' },
+  '청년': { bg: 'thumb-teal',   badge: 'badge-teal',   emoji: '🎓' },
+  '창업': { bg: 'thumb-blue',   badge: 'badge-blue',   emoji: '🌱' },
+  '기타': { bg: 'thumb-gray',   badge: 'badge-gray',   emoji: '📋' },
 }
 
-const config = computed(() => categoryConfig[props.course.category] || { bg: 'thumb-gray', badge: 'badge-gray' })
+const config = computed(() => categoryConfig[props.course.category] || { bg: 'thumb-gray', badge: 'badge-gray', emoji: '📋' })
 const thumbBg = computed(() => config.value.bg)
 const badgeClass = computed(() => config.value.badge)
+const thumbEmoji = computed(() => config.value.emoji)
 const thumbSrc = computed(() => null)
 </script>
 
