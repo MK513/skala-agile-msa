@@ -58,7 +58,7 @@ npm run dev
 ### 로그인 흐름
 
 - 로그인 버튼 → `localhost:8080/login` 이동 → 가입 정보 입력 → `/callback` 경유 복귀
-- **"Please sign in" 화면은 auth-server 제공. 수정 불가**
+- 중간의 계정 입력 화면은 **auth-server(백엔드)가 렌더링** — 프론트 코드 아님. 현재 브랜딩 적용됨 (→ 7번 참고)
 - 입력 없이 바로 로그인됨 = 이전 세션 유지. 정상
   - 다른 계정 테스트: 시크릿 창 또는 `http://localhost:8080/connect/logout`
 
@@ -105,16 +105,76 @@ API 경로·enum **변경 없음**
 
 ---
 
-## 7. 현재 상태
+## 7. 백엔드 수정 내역 — auth-server 로그인 화면 브랜딩
+
+> 유일한 백엔드 변경. **코드·jar·로직은 일절 수정하지 않음** — 스타일시트 1개만 오버레이.
+
+### 문제
+
+- 로그인 계정 입력 화면이 Spring Security 기본 페이지("Please sign in", 영문, 무브랜딩)
+- auth-server는 **소스 없이 강사 제공 Docker 이미지로만 존재** → 코드 수정·재빌드 불가
+
+### 해결 방식 (이미지 오버레이)
+
+- Spring Security 6.4는 기본 로그인 페이지의 CSS(`/default-ui.css`)를 **클래스패스에서** 로드함
+- 원본 이미지 위에 레이어 하나만 얹은 파생 이미지를 만들고, 커스텀 CSS 디렉터리(`/overlay`)를 클래스패스 **앞에** 추가
+  → 클래스로더가 우리 CSS를 먼저 발견 → 기본 CSS 대체
+- 관련 파일: `auth-server-branding/Dockerfile`, `auth-server-branding/default-ui.css`
+
+### 바뀐 것 (CSS만으로 처리)
+
+| 항목 | before → after |
+|---|---|
+| 배경 | 회색 → 프론트와 동일한 블루 그라데이션(#185FA5 계열) |
+| 타이틀 | "Please sign in" → "지원나침반 / 통합 로그인" (가상요소 치환) |
+| 입력 라벨 | 없음(영문 placeholder) → "이메일" / "비밀번호" 한글 라벨 |
+| 버튼 | "Sign in" → "로그인", 브랜드 컬러 |
+| 에러 문구 | "Bad credentials" → "이메일 또는 비밀번호가 올바르지 않습니다." |
+
+### 팀원 적용 방법 (clone만 받은 경우 안 보임 — 로컬 이미지 재빌드 필요)
+
+```bash
+docker tag msa-lecture/auth-server:1.0 msa-lecture/auth-server:1.0-orig
+```
+
+```bash
+docker build -t msa-lecture/auth-server:1.0 ./auth-server-branding
+```
+
+```bash
+docker compose -f ~/msa-lecture/docker-compose.yml up -d --force-recreate auth-server
+```
+
+### 되돌리기
+
+```bash
+docker tag msa-lecture/auth-server:1.0-orig msa-lecture/auth-server:1.0
+```
+
+```bash
+docker compose -f ~/msa-lecture/docker-compose.yml up -d --force-recreate auth-server
+```
+
+### 왜 이 방식인가
+
+- auth-server·api-gateway·eureka는 **수정 금지 대상** → 소스 변경 없이 겉모습만 바꾸는 최소 침습 방식
+- 인증 로직·토큰 발급·엔드포인트 동작은 **원본과 100% 동일** (CSS 파일 하나 차이)
+- 원본 이미지는 `1.0-orig` 태그로 백업되어 있어 언제든 즉시 복구 가능
+
+---
+
+## 8. 현재 상태
 
 - ✅ 로그인(OAuth2) 흐름 동작 확인
-- ✅ 회원가입 화면(`/register`) 구현 — 가입 → 로그인 → 사업 목록 이동 확인
-- ✅ 로그인 화면·헤더 도메인 문구 적용
+- ✅ 회원가입 화면(`/register`) 구현 — 가입 → 로그인 → 사업 목록 이동 확인 (실계정 E2E 검증)
+  - 필드별 검증(이메일 형식·비밀번호 8자·확인 일치), 역할 카드 선택 UI, 로딩·성공/실패 피드백, 모바일 반응형
+- ✅ 로그인 화면·헤더 도메인 문구 적용 (서비스명은 `src/constants/brand.js` 상수 — 이름 확정 시 여기만 수정)
+- ✅ auth-server 로그인 화면 브랜딩 (7번 참고)
 - ⬜ 나머지 화면 각 담당 작업 예정
 
 ---
 
-## 8. 질문 요령
+## 9. 질문 요령
 
 - ❌ "Eureka 설정이 왜 이래요?"
 - ✅ "이 API에 이렇게 호출했는데 이런 응답이 옵니다"
