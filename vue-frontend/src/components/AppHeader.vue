@@ -11,6 +11,7 @@
       <nav class="nav-links" v-if="auth.isAuthenticated">
         <router-link to="/courses" class="nav-link" :class="{ active: $route.path.startsWith('/courses') }">지원사업</router-link>
         <router-link to="/enrollments" class="nav-link" :class="{ active: $route.path === '/enrollments' }">내 신청 현황</router-link>
+        <router-link to="/payments" class="nav-link" :class="{ active: $route.path === '/payments' }">교부 내역</router-link>
       </nav>
 
       <!-- 우측 액션 -->
