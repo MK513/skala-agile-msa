@@ -44,7 +44,69 @@
           </div>
         </div>
 
-        <!-- 학생 화면 -->
+        <!-- 학생 화면: 신청 현황 -->
+        <section v-if="!isInstructor" class="application-section">
+          <div class="section-head application-head">
+            <div>
+              <h3 class="section-title">내 신청 현황</h3>
+              <span class="section-subtitle">지원한 강의의 접수 및 진행 상태를 확인할 수 있습니다.</span>
+            </div>
+            <span v-if="!applicationLoading && applications.length" class="application-count">
+              총 {{ applications.length }}건
+            </span>
+          </div>
+
+          <div v-if="applicationLoading" class="application-skeleton" aria-label="신청 내역을 불러오는 중">
+            <div v-for="i in 2" :key="i" class="application-skeleton-row">
+              <div class="skeleton-line application-skeleton-title"></div>
+              <div class="skeleton-line application-skeleton-meta"></div>
+            </div>
+          </div>
+
+          <div v-else-if="applicationError" class="application-state error-state">
+            <div>
+              <strong>신청 내역을 불러오지 못했습니다.</strong>
+              <p>{{ applicationError }}</p>
+            </div>
+            <button type="button" class="retry-btn" @click="loadApplications">다시 시도</button>
+          </div>
+
+          <div v-else-if="applications.length" class="application-list fade-in">
+            <article v-for="item in applications" :key="item.id" class="application-card">
+              <div class="application-main">
+                <span class="application-category">{{ item.course?.category || '지원 강의' }}</span>
+                <h4 class="application-title">
+                  {{ item.course?.title || `강의 #${item.courseId}` }}
+                </h4>
+                <div class="application-meta">
+                  <span>신청일 {{ formatDate(item.createdAt) }}</span>
+                  <span v-if="item.course?.instructorName">담당 {{ item.course.instructorName }}</span>
+                  <span>신청번호 #{{ item.id }}</span>
+                </div>
+              </div>
+
+              <div class="application-actions">
+                <span class="application-status" :class="statusMeta(item.status).className">
+                  <span class="status-dot"></span>
+                  {{ statusMeta(item.status).label }}
+                </span>
+                <router-link :to="`/courses/${item.courseId}`" class="detail-link">
+                  상세 보기
+                </router-link>
+              </div>
+            </article>
+          </div>
+
+          <div v-else class="application-state empty-application">
+            <div>
+              <strong>아직 신청한 내역이 없습니다.</strong>
+              <p>관심 있는 강의를 찾아 첫 신청을 시작해 보세요.</p>
+            </div>
+            <router-link to="/courses" class="action-btn action-primary">강의 둘러보기</router-link>
+          </div>
+        </section>
+
+        <!-- 학생 화면: 추천 강의 -->
         <section v-if="!isInstructor" class="recommend-section">
           <h3 class="section-title">추천 강의</h3>
 
@@ -184,6 +246,11 @@ const recommendLoading = ref(true)
 const recommendError = ref('')
 const recommendMessage = ref('')
 
+/* 학생 신청 내역 */
+const applications = ref([])
+const applicationLoading = ref(true)
+const applicationError = ref('')
+
 /* 강사용 */
 const myCourses = ref([])
 const instructorLoading = ref(true)
@@ -205,6 +272,53 @@ function formatPrice(price) {
   const value = Number(price ?? 0)
   if (Number.isNaN(value)) return '-'
   return `${value.toLocaleString()}원`
+}
+
+function formatDate(value) {
+  if (!value) return '-'
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '-'
+
+  return new Intl.DateTimeFormat('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(date)
+}
+
+function statusMeta(status) {
+  const statuses = {
+    PENDING: { label: '접수·심사 대기', className: 'application-pending' },
+    ACTIVE: { label: '신청 완료', className: 'application-active' },
+    CANCELLED: { label: '신청 취소', className: 'application-cancelled' }
+  }
+
+  return statuses[status] ?? { label: status || '상태 확인 중', className: 'application-unknown' }
+}
+
+async function loadApplications() {
+  applicationLoading.value = true
+  applicationError.value = ''
+
+  try {
+    const res = await enrollmentApi.getMyEnrollments()
+    const payload = res.data
+
+    if (Array.isArray(payload?.data)) {
+      applications.value = payload.data
+    } else if (Array.isArray(payload)) {
+      applications.value = payload
+    } else {
+      throw new Error('신청 내역 응답 형식이 올바르지 않습니다.')
+    }
+  } catch (error) {
+    console.error('[MyPage] failed to load applications:', error)
+    applications.value = []
+    applicationError.value = '잠시 후 다시 시도해 주세요.'
+  } finally {
+    applicationLoading.value = false
+  }
 }
 
 /**
@@ -324,10 +438,14 @@ async function loadInstructorCourses() {
 onMounted(async () => {
   if (isInstructor.value) {
     recommendLoading.value = false
+    applicationLoading.value = false
     await loadInstructorCourses()
   } else {
     instructorLoading.value = false
-    await loadStudentRecommendations()
+    await Promise.allSettled([
+      loadApplications(),
+      loadStudentRecommendations()
+    ])
   }
 })
 </script>
@@ -485,6 +603,190 @@ onMounted(async () => {
 .section-subtitle {
   font-size: 13px;
   color: var(--color-text-muted);
+}
+
+.application-head {
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.application-count {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.application-list {
+  display: grid;
+  gap: 12px;
+}
+
+.application-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px 22px;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.application-card:hover {
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.application-main {
+  min-width: 0;
+}
+
+.application-category {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.application-title {
+  overflow: hidden;
+  margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.application-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.application-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.application-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.application-pending {
+  background: var(--color-warning-light);
+  color: var(--color-warning);
+}
+
+.application-active {
+  background: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.application-cancelled,
+.application-unknown {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+}
+
+.detail-link {
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.detail-link:hover {
+  text-decoration: underline;
+}
+
+.application-state {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 112px;
+  padding: 22px;
+  background: var(--color-bg-primary);
+  border: 1px dashed var(--color-border-hover);
+  border-radius: var(--radius-lg);
+}
+
+.application-state strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.application-state p {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.error-state {
+  border-color: #fecaca;
+  background: #fffafa;
+}
+
+.retry-btn {
+  flex-shrink: 0;
+  padding: 8px 13px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.retry-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.application-skeleton {
+  display: grid;
+  gap: 12px;
+}
+
+.application-skeleton-row {
+  padding: 22px;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.application-skeleton-title {
+  width: 48%;
+  margin-bottom: 12px;
+}
+
+.application-skeleton-meta {
+  width: 68%;
 }
 
 .recommend-message {
@@ -713,6 +1015,21 @@ onMounted(async () => {
 
   .summary-cards {
     grid-template-columns: 1fr;
+  }
+
+  .application-card,
+  .application-state {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .application-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .application-title {
+    white-space: normal;
   }
 }
 </style>
