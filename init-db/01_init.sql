@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS courses (
     id               BIGINT          NOT NULL AUTO_INCREMENT,
     title            VARCHAR(255)    NOT NULL,
     description      TEXT,
-    category         VARCHAR(50)     NOT NULL COMMENT 'BACKEND|FRONTEND|DEVOPS|DATA_SCIENCE|MOBILE|SECURITY|DATABASE|OTHER',
+    category         VARCHAR(50)     NOT NULL COMMENT 'EMPLOYMENT|RND|EXPORT|FACILITY|HOUSING|YOUTH|STARTUP|OTHER',
     price            DECIMAL(10,2)   NOT NULL,
     instructor_id    BIGINT          NOT NULL,
     enrollment_count INT             NOT NULL DEFAULT 0,

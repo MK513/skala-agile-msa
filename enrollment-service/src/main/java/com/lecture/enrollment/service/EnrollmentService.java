@@ -133,11 +133,14 @@ public class EnrollmentService {
         if (category == null) return null;
 
         return switch (category) {
-            case "BACKEND" -> "백엔드";
-            case "FRONTEND" -> "프론트엔드";
-            case "DEVOPS" -> "DevOps";
-            case "DATA" -> "데이터";
-            case "AI" -> "AI";
+            case "EMPLOYMENT" -> "고용";
+            case "RND" -> "R&D";
+            case "EXPORT" -> "수출";
+            case "FACILITY" -> "설비";
+            case "HOUSING" -> "주거";
+            case "YOUTH" -> "청년";
+            case "STARTUP" -> "창업";
+            case "OTHER" -> "기타";
             default -> category;
         };
     }

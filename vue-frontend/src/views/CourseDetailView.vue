@@ -14,8 +14,7 @@
             </p>
 
             <div class="detail-meta">
-              <span>강사: {{ displayInstructorName }}</span>
-              <span>수강생: {{ displayEnrollmentCount }}명</span>
+              <span>신청 건수: {{ displayEnrollmentCount }}건</span>
             </div>
           </div>
 
@@ -26,6 +25,7 @@
             </div>
 
             <div class="enroll-body">
+              <div class="enroll-price-label">지원 한도액</div>
               <div class="enroll-price">₩{{ displayPrice }}</div>
 
               <button
@@ -45,9 +45,9 @@
               </p>
 
               <ul class="enroll-info-list">
-                <li>✅ 즉시 수강 가능</li>
-                <li>✅ 평생 소장</li>
-                <li>✅ 수료증 발급</li>
+                <li>✅ 온라인 신청 접수</li>
+                <li>✅ 담당자 서류 심사</li>
+                <li>✅ 심사 결과 알림</li>
               </ul>
             </div>
           </div>
@@ -60,7 +60,7 @@
     </div>
 
     <div v-else class="loading-center">
-      <p class="empty-text">강의 정보를 불러오지 못했습니다.</p>
+      <p class="empty-text">지원사업 정보를 불러오지 못했습니다.</p>
     </div>
   </div>
 </template>
@@ -87,11 +87,14 @@ const loading = computed(() => courseStore.loading)
 const isInstructor = computed(() => auth.user?.role === 'INSTRUCTOR')
 
 const categoryConfig = {
-  '백엔드': { badge: 'badge-teal', bg: 'thumb-teal', thumb: 'spring_boot' },
-  '프론트엔드': { badge: 'badge-teal', bg: 'thumb-teal', thumb: 'vue_js' },
-  'DevOps': { badge: 'badge-blue', bg: 'thumb-blue', thumb: 'kubernetes' },
-  '데이터': { badge: 'badge-purple', bg: 'thumb-purple', thumb: 'python' },
-  'AI': { badge: 'badge-pink', bg: 'thumb-pink', thumb: 'generative_ai' },
+  '고용': { badge: 'badge-teal', bg: 'thumb-teal' },
+  'R&D': { badge: 'badge-blue', bg: 'thumb-blue' },
+  '수출': { badge: 'badge-purple', bg: 'thumb-purple' },
+  '설비': { badge: 'badge-amber', bg: 'thumb-amber' },
+  '주거': { badge: 'badge-pink', bg: 'thumb-pink' },
+  '청년': { badge: 'badge-teal', bg: 'thumb-teal' },
+  '창업': { badge: 'badge-blue', bg: 'thumb-blue' },
+  '기타': { badge: 'badge-gray', bg: 'thumb-gray' },
 }
 
 const config = computed(() => categoryConfig[course.value?.category] || {})
@@ -99,17 +102,6 @@ const badgeClass = computed(() => config.value.badge || 'badge-gray')
 const thumbBg = computed(() => config.value.bg || 'thumb-gray')
 
 const displayCategory = computed(() => course.value?.category || '-')
-
-const displayInstructorName = computed(() => {
-  return (
-    course.value?.instructorName ||
-    course.value?.teacherName ||
-    course.value?.instructor?.name ||
-    course.value?.instructor_name ||
-    course.value?.ownerName ||
-    '강사 정보 없음'
-  )
-})
 
 const displayEnrollmentCount = computed(() => {
   const value = Number(
@@ -125,22 +117,13 @@ const displayPrice = computed(() => {
   return Number.isNaN(value) ? '0' : value.toLocaleString()
 })
 
-const thumbSrc = computed(() => {
-  const key = course.value?.thumbnail || config.value.thumb
-  if (!key) return null
-
-  try {
-    return new URL(`../assets/images/courses/${key}.png`, import.meta.url).href
-  } catch {
-    return null
-  }
-})
+const thumbSrc = computed(() => null)
 
 const buttonLabel = computed(() => {
-  if (isInstructor.value) return '강사 계정은 신청 불가'
-  if (enrollmentStatus.value === 'ACTIVE') return '내 수강 목록으로 이동'
-  if (enrollmentStatus.value === 'PENDING') return '신청 완료 · 결제 처리 중'
-  return '결제하고 수강하기'
+  if (isInstructor.value) return '기관 계정은 신청 불가'
+  if (enrollmentStatus.value === 'ACTIVE') return '신청 현황 보기'
+  if (enrollmentStatus.value === 'PENDING') return '심사 대기 중'
+  return '지원 신청하기'
 })
 
 const buttonDisabled = computed(() => {
@@ -152,18 +135,18 @@ const buttonDisabled = computed(() => {
 
 const helperText = computed(() => {
   if (isInstructor.value) {
-    return '강사 계정은 본인 강의를 수강 신청할 수 없습니다.'
+    return '지자체·수행기관 계정은 본인이 등록한 지원사업에 신청할 수 없습니다.'
   }
 
   if (enrollmentStatus.value === 'ACTIVE') {
-    return '이미 수강 중인 강의입니다. 내 수강 목록에서 바로 이어서 학습할 수 있습니다.'
+    return '이미 승인된 지원사업입니다. 신청 현황에서 확인할 수 있습니다.'
   }
 
   if (enrollmentStatus.value === 'PENDING') {
-    return '수강 신청이 접수되었습니다. 결제/처리 상태가 반영되면 내 수강 목록에서 확인할 수 있습니다.'
+    return '신청이 접수되어 심사가 진행 중입니다. 결과는 신청 현황에서 확인할 수 있습니다.'
   }
 
-  return '결제를 진행하면 수강 신청이 함께 처리됩니다.'
+  return '신청 시 담당자 심사 후 결과가 안내됩니다.'
 })
 
 async function loadEnrollmentStatus() {
@@ -200,12 +183,18 @@ async function handlePrimaryAction() {
   enrollError.value = ''
 
   if (!course.value?.id) {
-    enrollError.value = '강의 정보가 올바르지 않습니다.'
+    enrollError.value = '지원사업 정보가 올바르지 않습니다.'
+    return
+  }
+
+  if (!auth.isAuthenticated) {
+    alert('로그인이 필요합니다.')
+    router.push('/login')
     return
   }
 
   if (isInstructor.value) {
-    enrollError.value = '강사 계정은 본인 강의를 수강 신청할 수 없습니다.'
+    enrollError.value = '지자체·수행기관 계정은 본인이 등록한 지원사업에 신청할 수 없습니다.'
     return
   }
 
@@ -223,9 +212,11 @@ async function handlePrimaryAction() {
   try {
     await enrollmentApi.enroll(course.value.id)
     enrollmentStatus.value = 'PENDING'
+    alert('신청이 완료되었습니다 (심사 대기)')
+    router.push('/enrollments')
   } catch (e) {
     console.error('[CourseDetail] enroll failed:', e)
-    enrollError.value = e.response?.data?.message || '결제/수강 신청에 실패했습니다.'
+    enrollError.value = e.response?.data?.message || '지원 신청에 실패했습니다.'
   } finally {
     enrolling.value = false
   }
@@ -321,6 +312,7 @@ watch(
 
 .thumb-teal { background: #E1F5EE; }
 .thumb-blue { background: #E6F1FB; }
+.thumb-amber { background: #FAEEDA; }
 .thumb-purple { background: #EEEDFE; }
 .thumb-pink { background: #FBEAF0; }
 .thumb-gray { background: #F1EFE8; }
@@ -330,6 +322,11 @@ watch(
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.enroll-price-label {
+  font-size: 12px;
+  color: var(--color-text-muted);
 }
 
 .enroll-price {
