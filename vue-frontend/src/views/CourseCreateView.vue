@@ -3,43 +3,6 @@
     <AppHeader />
 
     <div class="page-layout">
-      <!-- 사이드바 -->
-      <aside class="sidebar">
-        <div class="sidebar-section">
-          <div class="sidebar-label">메뉴</div>
-
-          <router-link
-            to="/courses"
-            class="sidebar-item"
-            :class="{ active: $route.path === '/courses' }"
-          >
-            <span class="si-icon">📚</span> 지원사업 목록
-          </router-link>
-
-          <router-link
-            to="/courses/new"
-            class="sidebar-item"
-            :class="{ active: $route.path === '/courses/new' }"
-          >
-            <span class="si-icon">✍️</span> 지원사업 등록
-          </router-link>
-
-          <router-link to="/mypage" class="sidebar-item">
-            <span class="si-icon">⭐</span> 마이페이지
-          </router-link>
-        </div>
-
-        <div class="sidebar-section">
-          <div class="sidebar-label">계정</div>
-          <router-link to="/mypage" class="sidebar-item">
-            <span class="si-icon">👤</span> 마이페이지
-          </router-link>
-          <button class="sidebar-item sidebar-btn" @click="handleLogout">
-            <span class="si-icon">🚪</span> 로그아웃
-          </button>
-        </div>
-      </aside>
-
       <!-- 메인 -->
       <main class="main-content">
         <div class="content-header">
@@ -165,11 +128,6 @@ const categoryOptions = [
   { label: '기타', value: 'OTHER' }
 ]
 
-function handleLogout() {
-  auth.logout()
-  router.push('/')
-}
-
 function validateForm() {
   validationError.value = ''
 
@@ -253,8 +211,7 @@ async function handleSubmit() {
   margin: 0 auto;
   padding: 32px 24px;
   display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 28px;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 /* 사이드바 */
