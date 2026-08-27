@@ -49,6 +49,39 @@
                 <li><span class="check-mark" aria-hidden="true">✓</span> 담당자 서류 심사</li>
                 <li><span class="check-mark" aria-hidden="true">✓</span> 심사 결과 알림</li>
               </ul>
+
+              <div class="ref-upload-section">
+                <div class="ref-upload-label">AI가 참고할 파일</div>
+
+                <label class="btn btn-outline btn-full ref-upload-btn">
+                  📎 파일 업로드
+                  <input
+                    type="file"
+                    multiple
+                    class="ref-upload-input"
+                    @change="handleFileUpload"
+                  />
+                </label>
+
+                <ul v-if="referenceFiles.length" class="ref-file-list">
+                  <li v-for="(file, idx) in referenceFiles" :key="`${file.name}-${idx}`" class="ref-file-item">
+                    <span class="ref-file-icon">📄</span>
+                    <span class="ref-file-name" :title="file.name">{{ file.name }}</span>
+                    <span class="ref-file-size">{{ formatFileSize(file.size) }}</span>
+                    <button
+                      type="button"
+                      class="ref-file-remove"
+                      aria-label="파일 제거"
+                      @click="removeReferenceFile(idx)"
+                    >
+                      ✕
+                    </button>
+                  </li>
+                </ul>
+                <p v-else class="ref-file-empty">
+                  사업자등록증, 재직증명서 등 참고 파일을 업로드하면 AI 서류 작성 시 활용됩니다.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -69,36 +102,61 @@
         <h2 class="modal-title">AI 서류 자동 작성</h2>
         <p class="modal-subtitle">{{ course?.title }}</p>
 
-        <label class="field">
-          <span class="field-label">신청 서류 초안</span>
-          <textarea v-model="draftText" class="draft-textarea" rows="10"></textarea>
-        </label>
-
-        <div v-if="enrollError" class="error-msg">{{ enrollError }}</div>
-
-        <div class="modal-actions">
-          <button type="button" class="btn btn-ghost" @click="closeModal">닫기</button>
-          <button
-            type="button"
-            class="btn btn-primary"
-            :disabled="enrolling"
-            @click="confirmEnrollment"
-          >
-            {{ enrolling ? '접수 중...' : '이 내용으로 신청 접수' }}
-          </button>
+        <!-- 생성 대기 애니메이션 -->
+        <div v-if="modalStage === 'loading'" class="ai-loading">
+          <div class="ai-spinner">
+            <span class="ai-spinner-core">✨</span>
+          </div>
+          <p class="ai-loading-text">{{ loadingMessage }}</p>
         </div>
+
+        <!-- 생성 결과 -->
+        <template v-else>
+          <div class="ai-result fade-in">
+            <iframe
+              :src="aiDocumentFile"
+              class="ai-doc-frame"
+              title="AI가 자동으로 작성한 신청 서류 초안 미리보기 (PDF)"
+            ></iframe>
+            <a :href="aiDocumentFile" target="_blank" rel="noopener" class="ai-doc-open-link">
+              새 창에서 크게 보기 ↗
+            </a>
+          </div>
+
+          <div v-if="enrollError" class="error-msg">{{ enrollError }}</div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-ghost" @click="closeModal">닫기</button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              :disabled="enrolling"
+              @click="confirmEnrollment"
+            >
+              {{ enrolling ? '접수 중...' : '이 내용으로 신청 접수' }}
+            </button>
+          </div>
+        </template>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import { useCourseStore } from '@/store/course.js'
 import { enrollmentApi } from '@/api/enrollment.js'
 import { useAuthStore } from '@/store/auth.js'
+import aiDocumentFile from '@/assets/files/ai-document-mockup.pdf'
+
+const AI_LOADING_DURATION_MS = 3000
+const AI_LOADING_MESSAGES = [
+  'AI가 프로필 정보를 분석하고 있습니다...',
+  '사업 요건에 맞춰 서류 항목을 채우고 있습니다...',
+  '신청 서류 초안 생성을 마무리하고 있습니다...'
+]
 
 const route = useRoute()
 const router = useRouter()
@@ -110,7 +168,13 @@ const enrollError = ref('')
 const enrollmentStatus = ref('NONE') // NONE | PENDING | ACTIVE
 
 const modalOpen = ref(false)
-const draftText = ref('')
+const modalStage = ref('loading') // loading | result
+const loadingMessage = ref(AI_LOADING_MESSAGES[0])
+
+let loadingMessageTimer = null
+let loadingDoneTimer = null
+
+const referenceFiles = ref([])
 
 const course = computed(() => courseStore.selectedCourse)
 const loading = computed(() => courseStore.loading)
@@ -179,34 +243,94 @@ const helperText = computed(() => {
   return 'AI가 프로필 정보를 바탕으로 신청 서류 초안을 자동으로 작성해 드립니다.'
 })
 
-function buildDraftText() {
-  const raw = localStorage.getItem('user_profile')
-  let profile = null
-
-  try {
-    profile = raw ? JSON.parse(raw) : null
-  } catch (e) {
-    console.error('[CourseDetail] 저장된 프로필 파싱 실패:', e)
+function clearLoadingTimers() {
+  if (loadingMessageTimer) {
+    clearInterval(loadingMessageTimer)
+    loadingMessageTimer = null
   }
+  if (loadingDoneTimer) {
+    clearTimeout(loadingDoneTimer)
+    loadingDoneTimer = null
+  }
+}
 
-  const applicant =
-    profile?.userType === 'YOUTH'
-      ? `${profile?.name || auth.user?.name || '신청자'} (청년, ${profile?.youth?.age ?? '-'}세)`
-      : `${profile?.name || auth.user?.name || '신청 기업'} (${profile?.company?.industry || '업종 미입력'}, 상시근로자 ${profile?.company?.employeeCount ?? '-'}명)`
+function openAiModal() {
+  modalStage.value = 'loading'
+  loadingMessage.value = AI_LOADING_MESSAGES[0]
+  modalOpen.value = true
 
-  return `[신청 서류 초안]
+  clearLoadingTimers()
 
-- 지원 기업/신청자 정보: ${applicant}
-- 이메일: ${profile?.email || auth.user?.email || '-'}
-- 신청 사업명: ${course.value?.title}
-- 지원 분야: ${displayCategory.value}
-- 지원 한도액: ₩${displayPrice.value}
+  let step = 0
+  loadingMessageTimer = setInterval(() => {
+    step += 1
+    if (step < AI_LOADING_MESSAGES.length) {
+      loadingMessage.value = AI_LOADING_MESSAGES[step]
+    }
+  }, AI_LOADING_DURATION_MS / AI_LOADING_MESSAGES.length)
 
-위 사업에 대한 지원을 신청합니다. AI가 자동으로 생성한 초안이며, 제출 전 자유롭게 수정하실 수 있습니다.`
+  loadingDoneTimer = setTimeout(() => {
+    clearLoadingTimers()
+    modalStage.value = 'result'
+  }, AI_LOADING_DURATION_MS)
 }
 
 function closeModal() {
   modalOpen.value = false
+  clearLoadingTimers()
+}
+
+onBeforeUnmount(() => {
+  clearLoadingTimers()
+})
+
+function referenceFilesStorageKey(courseId) {
+  return `ai_reference_files_${courseId}`
+}
+
+function loadReferenceFiles(courseId) {
+  if (!courseId) {
+    referenceFiles.value = []
+    return
+  }
+
+  try {
+    const raw = localStorage.getItem(referenceFilesStorageKey(courseId))
+    referenceFiles.value = raw ? JSON.parse(raw) : []
+  } catch (e) {
+    console.error('[CourseDetail] 참고 파일 목록 파싱 실패:', e)
+    referenceFiles.value = []
+  }
+}
+
+function saveReferenceFiles() {
+  if (!course.value?.id) return
+  localStorage.setItem(referenceFilesStorageKey(course.value.id), JSON.stringify(referenceFiles.value))
+}
+
+function handleFileUpload(event) {
+  const files = Array.from(event.target.files || [])
+  if (files.length) {
+    files.forEach((file) => {
+      referenceFiles.value.push({ name: file.name, size: file.size })
+    })
+    saveReferenceFiles()
+  }
+
+  event.target.value = ''
+}
+
+function removeReferenceFile(index) {
+  referenceFiles.value.splice(index, 1)
+  saveReferenceFiles()
+}
+
+function formatFileSize(bytes) {
+  const value = Number(bytes)
+  if (!Number.isFinite(value)) return ''
+  if (value < 1024) return `${value}B`
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)}KB`
+  return `${(value / (1024 * 1024)).toFixed(1)}MB`
 }
 
 async function loadEnrollmentStatus() {
@@ -267,8 +391,7 @@ async function handlePrimaryAction() {
     return
   }
 
-  draftText.value = buildDraftText()
-  modalOpen.value = true
+  openAiModal()
 }
 
 async function confirmEnrollment() {
@@ -292,8 +415,18 @@ async function confirmEnrollment() {
 onMounted(async () => {
   await courseStore.fetchCourse(route.params.id)
   console.log('[CourseDetail] selectedCourse =', courseStore.selectedCourse)
+  loadReferenceFiles(courseStore.selectedCourse?.id)
   await loadEnrollmentStatus()
 })
+
+watch(
+  () => courseStore.selectedCourse?.id,
+  (id, prevId) => {
+    if (id && id !== prevId) {
+      loadReferenceFiles(id)
+    }
+  }
+)
 
 watch(
   () => courseStore.selectedCourse,
@@ -434,6 +567,97 @@ watch(
   color: var(--color-text-primary);
 }
 
+.ref-upload-section {
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ref-upload-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.ref-upload-btn {
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.ref-upload-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.ref-file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ref-file-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+}
+
+.ref-file-icon {
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+.ref-file-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.ref-file-size {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
+.ref-file-remove {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 1;
+}
+
+.ref-file-remove:hover {
+  background: var(--color-bg-tertiary);
+  color: var(--color-danger);
+}
+
+.ref-file-empty {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
 .error-msg {
   font-size: 13px;
   color: #dc2626;
@@ -499,7 +723,7 @@ watch(
 
 .modal-box {
   width: 100%;
-  max-width: 520px;
+  max-width: 884px;
   max-height: 90vh;
   overflow-y: auto;
   background: var(--color-bg-primary);
@@ -520,39 +744,80 @@ watch(
   margin-bottom: 18px;
 }
 
-.field {
+.ai-loading {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  gap: 20px;
+  padding: 48px 12px;
+}
+
+.ai-spinner {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid var(--color-primary-light);
+  border-top-color: var(--color-primary);
+  animation: spin 1s linear infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-spinner-core {
+  font-size: 22px;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.ai-loading-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-align: center;
+  min-height: 20px;
+}
+
+.ai-result {
   margin-bottom: 16px;
 }
 
-.field-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-}
-
-.draft-textarea {
+.ai-doc-frame {
   width: 100%;
-  padding: 12px;
+  height: 782px;
+  display: block;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  border: 1.5px solid var(--color-border);
-  font-family: var(--font-sans);
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--color-text-primary);
-  resize: vertical;
+  box-shadow: var(--shadow-sm);
+  background: var(--color-bg-secondary);
 }
 
-.draft-textarea:focus {
-  outline: none;
-  border-color: var(--color-primary);
+.ai-doc-open-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.ai-doc-open-link:hover {
+  text-decoration: underline;
 }
 
 .modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.7;
+  }
 }
 </style>
