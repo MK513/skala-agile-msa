@@ -2,46 +2,6 @@
   <div class="page-wrapper">
     <AppHeader />
     <div class="page-layout">
-      <!-- 사이드바 -->
-      <aside class="sidebar">
-        <div class="sidebar-section">
-          <div class="sidebar-label">메뉴</div>
-
-          <router-link
-            to="/courses"
-            class="sidebar-item"
-            :class="{ active: $route.path === '/courses' }"
-          >
-            <span class="si-icon">📚</span> 지원사업 목록
-          </router-link>
-
-          <router-link
-            v-if="!isInstructor"
-            to="/enrollments"
-            class="sidebar-item"
-          >
-            <span class="si-icon">✅</span> 신청 현황
-          </router-link>
-
-          <router-link
-            to="/mypage"
-            class="sidebar-item"
-          >
-            <span class="si-icon">⭐</span> 마이페이지
-          </router-link>
-        </div>
-
-        <div class="sidebar-section">
-          <div class="sidebar-label">계정</div>
-          <router-link to="/mypage" class="sidebar-item">
-            <span class="si-icon">👤</span> 마이페이지
-          </router-link>
-          <button class="sidebar-item sidebar-btn" @click="handleLogout">
-            <span class="si-icon">🚪</span> 로그아웃
-          </button>
-        </div>
-      </aside>
-
       <!-- 메인 -->
       <main class="main-content">
         <div class="content-header">
@@ -113,13 +73,11 @@
 
 <script setup>
 import { computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import CourseCard from '@/components/CourseCard.vue'
 import { useCourseStore } from '@/store/course.js'
 import { useAuthStore } from '@/store/auth.js'
 
-const router = useRouter()
 const courseStore = useCourseStore()
 const auth = useAuthStore()
 
@@ -130,11 +88,6 @@ const isInstructor = computed(() => auth.user?.role === 'INSTRUCTOR')
 
 function selectCategory(cat) {
   courseStore.selectCategory(cat)
-}
-
-function handleLogout() {
-  auth.logout()
-  router.push('/')
 }
 
 onMounted(() => {
@@ -158,8 +111,7 @@ onMounted(() => {
   margin: 0 auto;
   padding: 32px 24px;
   display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 28px;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 /* 사이드바 */
