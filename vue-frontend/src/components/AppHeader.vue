@@ -3,14 +3,14 @@
     <div class="header-inner">
       <!-- 로고 -->
       <router-link to="/" class="logo">
-        <img src="@/assets/images/logo/main_logo.png" alt="LearnNexus" class="logo-img" />
-        <span class="logo-text">LearnNexus</span>
+        <img src="@/assets/images/logo/main_logo.png" :alt="APP_NAME" class="logo-img" />
+        <span class="logo-text">{{ APP_NAME }}</span>
       </router-link>
 
-      <!-- 네비게이션 -->
+      <!-- 네비게이션 (라우트 경로는 백엔드 도메인 그대로, 라벨만 새 도메인) -->
       <nav class="nav-links" v-if="auth.isAuthenticated">
         <router-link to="/courses" class="nav-link" :class="{ active: $route.path.startsWith('/courses') }">지원사업</router-link>
-        <router-link to="/enrollments" class="nav-link" :class="{ active: $route.path === '/enrollments' }">신청 현황</router-link>
+        <router-link to="/enrollments" class="nav-link" :class="{ active: $route.path === '/enrollments' }">내 신청 현황</router-link>
       </nav>
 
       <!-- 우측 액션 -->
@@ -33,6 +33,7 @@
 <script setup>
 import { useAuthStore } from '@/store/auth.js'
 import { useRouter } from 'vue-router'
+import { APP_NAME } from '@/constants/brand.js'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -124,5 +125,26 @@ function handleLogout() {
 .user-avatar:hover {
   background: var(--color-primary);
   color: #fff;
+}
+
+/* 키보드 포커스 링 */
+.logo:focus-visible,
+.nav-link:focus-visible,
+.user-avatar:focus-visible,
+.header-actions .btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* 반응형 */
+@media (max-width: 640px) {
+  .header-inner {
+    padding: 0 16px;
+    gap: 12px;
+    height: 56px;
+  }
+  .logo-text { display: none; }
+  .nav-link { padding: 6px 10px; font-size: 13px; white-space: nowrap; }
+  .btn-sm { padding: 6px 12px; }
 }
 </style>

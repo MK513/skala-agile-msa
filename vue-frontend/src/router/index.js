@@ -14,6 +14,12 @@ const routes = [
     meta: { guestOnly: true }
   },
   {
+    path: '/register',
+    name: 'Register',
+    component: () => import('@/views/RegisterView.vue'),
+    meta: { guestOnly: true }
+  },
+  {
     path: '/callback',
     name: 'Callback',
     component: () => import('@/views/CallbackView.vue')
