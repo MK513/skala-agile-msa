@@ -11,11 +11,10 @@
       <span class="badge" :class="badgeClass">{{ course.category }}</span>
       <h3 class="card-title">{{ course.title }}</h3>
       <div class="card-meta">
-        <span class="instructor">{{ course.instructorName }}</span>
-        <span class="price">₩{{ Number(course.price).toLocaleString() }}</span>
+        <span class="price">지원한도 ₩{{ Number(course.price).toLocaleString() }}</span>
       </div>
       <div class="card-footer">
-        <span class="enrolled">수강생 {{ course.enrollmentCount?.toLocaleString() }}명</span>
+        <span class="enrolled">신청 {{ course.enrollmentCount?.toLocaleString() ?? 0 }}건</span>
       </div>
     </div>
   </router-link>
@@ -29,27 +28,20 @@ const props = defineProps({
 })
 
 const categoryConfig = {
-  '백엔드':    { bg: 'thumb-teal',   badge: 'badge-teal',   thumb: 'spring_boot' },
-  '프론트엔드':{ bg: 'thumb-teal',   badge: 'badge-teal',   thumb: 'vue_js' },
-  'DevOps':   { bg: 'thumb-blue',   badge: 'badge-blue',   thumb: 'docker' },
-  '데이터':   { bg: 'thumb-purple', badge: 'badge-purple', thumb: 'python' },
-  'AI':       { bg: 'thumb-pink',   badge: 'badge-pink',   thumb: 'generative_ai' },
+  '고용': { bg: 'thumb-teal',   badge: 'badge-teal' },
+  'R&D':  { bg: 'thumb-blue',   badge: 'badge-blue' },
+  '수출': { bg: 'thumb-purple', badge: 'badge-purple' },
+  '설비': { bg: 'thumb-amber',  badge: 'badge-amber' },
+  '주거': { bg: 'thumb-pink',   badge: 'badge-pink' },
+  '청년': { bg: 'thumb-teal',   badge: 'badge-teal' },
+  '창업': { bg: 'thumb-blue',   badge: 'badge-blue' },
+  '기타': { bg: 'thumb-gray',   badge: 'badge-gray' },
 }
 
 const config = computed(() => categoryConfig[props.course.category] || { bg: 'thumb-gray', badge: 'badge-gray' })
 const thumbBg = computed(() => config.value.bg)
 const badgeClass = computed(() => config.value.badge)
-
-// 썸네일 이미지 동적 import
-const thumbSrc = computed(() => {
-  const key = props.course.thumbnail || config.value.thumb
-  if (!key) return null
-  try {
-    return new URL(`../assets/images/courses/${key}.png`, import.meta.url).href
-  } catch {
-    return null
-  }
-})
+const thumbSrc = computed(() => null)
 </script>
 
 <style scoped>

@@ -7,7 +7,7 @@
           <div class="sidebar-label">메뉴</div>
 
           <router-link to="/courses" class="sidebar-item">
-            <span class="si-icon">📚</span> 강의 목록
+            <span class="si-icon">📚</span> 지원사업 목록
           </router-link>
 
           <router-link
@@ -15,7 +15,7 @@
             to="/enrollments"
             class="sidebar-item active"
           >
-            <span class="si-icon">✅</span> 내 수강 목록
+            <span class="si-icon">✅</span> 신청 현황
           </router-link>
 
           <router-link to="/mypage" class="sidebar-item">
@@ -35,7 +35,7 @@
       </aside>
 
       <main class="main-content">
-        <h1 class="page-title">내 수강 목록</h1>
+        <h1 class="page-title">신청 현황</h1>
 
         <div v-if="loading" class="loading-center">
           <div class="spinner"></div>
@@ -44,7 +44,7 @@
         <div v-else-if="enrollments.length" class="enrollment-list fade-in">
           <div v-for="item in enrollments" :key="item.id" class="enrollment-card">
             <div class="enroll-thumb" :class="getThumbBg(item.course?.category)">
-              <img :src="getThumbSrc(item.course)" :alt="item.course?.title" />
+              {{ item.course?.category?.charAt(0) }}
             </div>
 
             <div class="enroll-info">
@@ -52,7 +52,6 @@
                 {{ item.course?.category }}
               </span>
               <h3 class="enroll-title">{{ item.course?.title }}</h3>
-              <p class="enroll-instructor">강사: {{ item.course?.instructorName }}</p>
             </div>
 
             <div class="enroll-status">
@@ -62,10 +61,10 @@
                   item.status === 'ACTIVE' ? 'status-active' : 'status-pending'
                 ]"
               >
-                {{ item.status === 'ACTIVE' ? '수강 중' : '대기 중' }}
+                {{ item.status === 'ACTIVE' ? '승인됨' : '심사 대기' }}
               </span>
               <router-link :to="`/courses/${item.courseId}`" class="btn btn-ghost btn-sm">
-                강의 보기
+                사업 보기
               </router-link>
             </div>
           </div>
@@ -73,9 +72,9 @@
 
         <div v-else class="empty-state">
           <p class="empty-icon">📭</p>
-          <p>수강 중인 강의가 없습니다.</p>
+          <p>신청한 지원사업이 없습니다.</p>
           <router-link to="/courses" class="btn btn-primary" style="margin-top:16px;">
-            강의 둘러보기
+            지원사업 둘러보기
           </router-link>
         </div>
       </main>
@@ -99,11 +98,14 @@ const loading = ref(true)
 const isInstructor = computed(() => auth.user?.role === 'INSTRUCTOR')
 
 const categoryConfig = {
-  '백엔드': { bg: 'thumb-teal', badge: 'badge-teal', thumb: 'spring_boot' },
-  '프론트엔드': { bg: 'thumb-teal', badge: 'badge-teal', thumb: 'vue_js' },
-  'DevOps': { bg: 'thumb-blue', badge: 'badge-blue', thumb: 'kubernetes' },
-  '데이터': { bg: 'thumb-purple', badge: 'badge-purple', thumb: 'python' },
-  'AI': { bg: 'thumb-pink', badge: 'badge-pink', thumb: 'generative_ai' },
+  '고용': { bg: 'thumb-teal', badge: 'badge-teal' },
+  'R&D': { bg: 'thumb-blue', badge: 'badge-blue' },
+  '수출': { bg: 'thumb-purple', badge: 'badge-purple' },
+  '설비': { bg: 'thumb-amber', badge: 'badge-amber' },
+  '주거': { bg: 'thumb-pink', badge: 'badge-pink' },
+  '청년': { bg: 'thumb-teal', badge: 'badge-teal' },
+  '창업': { bg: 'thumb-blue', badge: 'badge-blue' },
+  '기타': { bg: 'thumb-gray', badge: 'badge-gray' },
 }
 
 function getThumbBg(cat) {
@@ -112,16 +114,6 @@ function getThumbBg(cat) {
 
 function getBadge(cat) {
   return categoryConfig[cat]?.badge || 'badge-gray'
-}
-
-function getThumbSrc(course) {
-  const key = course?.thumbnail || categoryConfig[course?.category]?.thumb
-  if (!key) return ''
-  try {
-    return new URL(`../assets/images/courses/${key}.png`, import.meta.url).href
-  } catch {
-    return ''
-  }
 }
 
 function handleLogout() {
@@ -267,13 +259,9 @@ onMounted(async () => {
   justify-content: center;
   flex-shrink: 0;
   overflow: hidden;
-}
-
-.enroll-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  padding: 8px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-muted);
 }
 
 .thumb-teal {
@@ -282,6 +270,10 @@ onMounted(async () => {
 
 .thumb-blue {
   background: #E6F1FB;
+}
+
+.thumb-amber {
+  background: #FAEEDA;
 }
 
 .thumb-purple {
@@ -306,11 +298,6 @@ onMounted(async () => {
 .enroll-title {
   font-size: 15px;
   font-weight: 600;
-}
-
-.enroll-instructor {
-  font-size: 13px;
-  color: var(--color-text-secondary);
 }
 
 .enroll-status {

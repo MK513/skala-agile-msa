@@ -12,7 +12,7 @@
             class="sidebar-item"
             :class="{ active: $route.path === '/courses' }"
           >
-            <span class="si-icon">📚</span> 강의 목록
+            <span class="si-icon">📚</span> 지원사업 목록
           </router-link>
 
           <router-link
@@ -20,7 +20,7 @@
             to="/enrollments"
             class="sidebar-item"
           >
-            <span class="si-icon">✅</span> 내 수강 목록
+            <span class="si-icon">✅</span> 신청 현황
           </router-link>
 
           <router-link
@@ -46,9 +46,9 @@
       <main class="main-content">
         <div class="content-header">
           <div>
-            <h1 class="page-title">강의 목록</h1>
+            <h1 class="page-title">지원사업 목록</h1>
             <p class="page-subtitle" v-if="isInstructor">
-              강사 계정으로 등록된 강의를 확인하고 새 강의를 추가할 수 있습니다.
+              지자체·수행기관 계정으로 등록한 지원사업을 확인하고 새 사업을 추가할 수 있습니다.
             </p>
           </div>
 
@@ -57,7 +57,7 @@
             to="/courses/new"
             class="btn btn-primary create-course-btn"
           >
-            강의 등록
+            지원사업 등록
           </router-link>
         </div>
 
@@ -85,10 +85,10 @@
           </div>
         </div>
 
-        <!-- 강의 그리드 -->
-        <div v-else-if="filteredCourses.length" class="course-grid fade-in">
+        <!-- 지원사업 그리드 -->
+        <div v-else-if="courseStore.courses.length" class="course-grid fade-in">
           <CourseCard
-            v-for="course in filteredCourses"
+            v-for="course in courseStore.courses"
             :key="course.id"
             :course="course"
           />
@@ -96,14 +96,14 @@
 
         <!-- 빈 상태 -->
         <div v-else class="empty-state">
-          <p>해당 카테고리의 강의가 없습니다.</p>
+          <p>해당 분야의 지원사업이 없습니다.</p>
 
           <router-link
             v-if="isInstructor"
             to="/courses/new"
             class="btn btn-primary empty-action-btn"
           >
-            첫 강의 등록하기
+            첫 지원사업 등록하기
           </router-link>
         </div>
       </main>
@@ -128,14 +128,8 @@ const { categories, loading } = courseStore
 const selectedCategory = computed(() => courseStore.selectedCategory)
 const isInstructor = computed(() => auth.user?.role === 'INSTRUCTOR')
 
-const filteredCourses = computed(() => {
-  if (!Array.isArray(courseStore.courses)) return []
-  if (selectedCategory.value === '전체') return courseStore.courses
-  return courseStore.courses.filter(c => c.category === selectedCategory.value)
-})
-
 function selectCategory(cat) {
-  courseStore.setCategory(cat)
+  courseStore.selectCategory(cat)
 }
 
 function handleLogout() {
