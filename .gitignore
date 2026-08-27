@@ -1,0 +1,46 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
+
+# ---- Java / Gradle (eureka-server, user-service, course-service, enrollment-service, payment-service) ----
+**/.gradle/
+**/build/
+**/bin/
+!**/src/main/**/build/
+!**/src/main/**/bin/
+!**/src/test/**/build/
+!**/src/test/**/bin/
+HELP.md
+
+# ---- Node / Vue (vue-frontend) ----
+**/node_modules/
+**/dist/
+**/dist-ssr/
+*.zip
+
+# ---- Python (recommend-service) ----
+**/__pycache__/
+*.pyc
+**/.venv/
+**/venv/
+*.egg-info/
+
+# ---- Env / secrets ----
+.env
+.env.*
+!.env.example
+
+# ---- Docker image archives / build outputs (large binaries, not source) ----
+*.tar
+*.tar.gz
+*.part.*
+infra-images.tar
+msa-lecture-images.*
