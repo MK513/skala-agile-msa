@@ -1,57 +1,58 @@
 당신은 Vue.js 및 Vanilla HTML/JS 기반 프론트엔드 개발자입니다.
-정부 지원 대행 종합 서비스의 3가지 핵심 화면(등록, 목록/탐색, 상세)을 구현하는 코드를 작성해주세요.
+정부 지원 대행 종합 서비스의 [프로필 등록 페이지]와 [AI 맞춤 매칭 페이지]를 구현하는 코드를 작성해주세요.
 
-[공통 요구사항 및 제약조건]
-1. Base URL: 모든 API 요청은 API Gateway인 `http://localhost:8080`을 통해 호출해야 합니다.
-2. 인증 헤더: 인증이 필요한 요청은 `sessionStorage.getItem("token")`에서 토큰을 가져와 `Authorization: Bearer ${token}` 헤더를 포함해야 하며, 401 에러 발생 시 로그인 페이지(`login.html`)로 리다이렉트합니다.
-3. 디자인: 과도한 스타일링 없이 직관적이고 시연 가능한 심플한 CSS/구조로 작성해주세요.
-4. 도메인 매핑:
-   - Course = 지원사업
-   - Price = 지원 한도액 (원)
-   - Category = EMPLOYMENT, RND, EXPORT, FACILITY, HOUSING, YOUTH, STARTUP, OTHER
-   - Enrollment = 지원 신청 (POST /api/enrollments)
+[공통 연동 규칙 및 제약사항]
+1. Gateway URL: 모든 API 요청은 `http://localhost:8080`을 통해 전송합니다.
+2. 인증 헤더: 인증이 필요한 요청은 `sessionStorage.getItem("token")`의 토큰을 `Authorization: Bearer ${token}` 헤더에 포함합니다.
+3. 백엔드 DB 무수정 원칙:
+   - 프로필 저장 API가 백엔드에 없으므로, 프로필 정보(유형, 관심분야, 업종, 기업규모/연령 등)는 브라우저 `localStorage`에 영구 저장 및 관리합니다.
+   - 사용자 ID는 `GET /api/users/me` 호출 응답에서 추출하거나 토큰 디코딩/기본 저장값을 활용합니다.
 
 ---
 
-### 1. 지원사업 등록 페이지 (`course-create.html` 또는 등록 컴포넌트)
-- **API 연동**: `POST http://localhost:8080/api/courses` (인증 토큰 필수)
-- **사용자 역할**: 지자체·수행기관(AGENCY)
-- **입력 필드**:
-  - 사업명 (title)
-  - 사업 설명 (description)
-  - 지원 분야 (category: EMPLOYMENT, RND, EXPORT, FACILITY, HOUSING, YOUTH, STARTUP, OTHER 중 드롭다운 선택)
-  - 지원 한도액 (price: 숫자 입력)
-- **동작 흐름**:
-  - 폼 제출 시 JSON 형식으로 `POST /api/courses` 호출
-  - 등록 성공 시 목록 페이지(`course-list.html`)로 이동
-
----
-
-### 2. 지원사업 목록/탐색 페이지 (`course-list.html` 또는 목록 컴포넌트)
+### 1. 프로필 등록/관리 페이지 (`profile-setup.html`)
 - **API 연동**:
-  - 전체 목록: `GET http://localhost:8080/api/courses` (인증 불필요)
-  - 분야별 필터: `GET http://localhost:8080/api/courses/category/{category}` (인증 불필요)
+  - 내 기본 계정 정보 조회: `GET http://localhost:8080/api/users/me` (토큰 필요)
 - **화면 구성**:
-  - 상단 분야별 탭 버튼: [전체, 고용(EMPLOYMENT), R&D(RND), 수출(EXPORT), 설비(FACILITY), 주거(HOUSING), 청년(YOUTH), 창업(STARTUP), 기타(OTHER)]
-  - 지원사업 카드/테이블 리스트: 사업명, 카테고리, 지원 한도액(price), 신청 건수(enrollmentCount) 표시
+  - 사용자 유형 선택: [관내 중소기업 / 관내 청년]
+  - 기업 세부정보 (기업 선택 시 노출):
+    - 업종 (제조, IT/SW, 바이오, 유통/서비스, 기타)
+    - 상시 근로자 수 (숫자 입력)
+  - 청년 세부정보 (청년 선택 시 노출):
+    - 연령 (숫자 입력)
+    - 거주 지역 (관내 거주 여부 체크박스)
+  - 주 관심 지원 분야 (다중 체크박스):
+    - EMPLOYMENT(고용), RND(R&D), EXPORT(수출), FACILITY(설비), HOUSING(주거), YOUTH(청년), STARTUP(창업), OTHER(기타)
 - **동작 흐름**:
-  - 페이지 로드 시 전체 목록 API 호출 및 렌더링
-  - 탭 클릭 시 선택된 카테고리 엔드포인트(`GET /api/courses/category/{category}`)를 호출하여 리스트 갱신 (전체 탭 클릭 시 `GET /api/courses` 호출)
-  - 각 사업 아이템 클릭 시 상세 페이지(`course-detail.html?id={id}`)로 이동
+  1. 페이지 진입 시 `GET /api/users/me`로 기본 사용자명/이메일 바인딩
+  2. 기존에 `localStorage.getItem("user_profile")`에 저장된 값이 있다면 인풋 필드에 자동 세팅
+  3. [프로필 저장 및 AI 매칭 바로가기] 버튼 클릭 시:
+     - 입력 데이터를 JSON 객체로 `localStorage.setItem("user_profile", JSON.stringify(profileData))`에 저장
+     - 저장 완료 후 AI 맞춤 매칭 페이지(`recommend-list.html`)로 자동 이동
 
 ---
 
-### 3. 지원사업 상세 및 신청 페이지 (`course-detail.html` 또는 상세 컴포넌트)
+### 2. AI 맞춤 매칭 & 서류 초안 가이드 페이지 (`recommend-list.html`)
 - **API 연동**:
-  - 사업 상세 조회: `GET http://localhost:8080/api/courses/{id}` (인증 불필요)
-  - 지원 신청하기: `POST http://localhost:8080/api/enrollments` (인증 토큰 필수)
+  - 추천 지원사업 목록 조회: `GET http://localhost:8080/api/recommend/{user_id}` (토큰 필요)
+  - 보조/대체 목록 조회 (추천 결과가 비어있거나 필터링 확장 시): `GET http://localhost:8080/api/courses`
 - **화면 구성**:
-  - URL 파라미터(`id`)를 통해 상세 데이터 로드 후 사업명, 카테고리, 지원 한도액, 상세 설명 표시
-  - 하단 [지원 신청하기] 버튼
-- **동작 흐름**:
-  - [지원 신청하기] 버튼 클릭 시 토큰 유무 확인 (미로그인 시 안내 후 로그인 이동)
-  - `POST /api/enrollments`로 `{"courseId": id}` 전송
-  - 응답의 `status: "PENDING"`(심사 대기) 수신 시 "신청이 완료되었습니다 (심사 대기)" 알림 후 마이페이지/신청 현황 화면(`my-enrollments.html`)으로 이동
+  - 상단: 사용자 프로필 요약 카드 ("OO 기업 / 선호: 고용, R&D" 또는 "청년 신청자 / 선호: 주거, 청년") + [프로필 수정] 링크
+  - 본문: AI 맞춤 추천 사업 카드 리스트
+    - 사업명, 카테고리 태그, 지원 한도액(price), 신청 건수(enrollmentCount)
+    - AI 매칭 태그 뱃지: 프로필의 관심 분야와 일치할 경우 `[적합도 95% AI 추천]` 강조 뱃지 표시
+    - 카드 내 액션 버튼: [사업 상세 보기], [AI 서류 자동 작성]
+- **데이터 처리 및 필터링 로직**:
+  1. `GET /api/recommend/{user_id}` 호출하여 추천 사업 목록 수신
+  2. `localStorage.getItem("user_profile")`에서 관심 카테고리 목록(`categories`) 로드
+  3. 1차 정렬/필터링:
+     - 추천 목록 중 사용자의 관심 카테고리에 해당하는 사업을 최상단에 배치
+     - 추천 목록이 비어있는 신규 사용자(Cold Start)일 경우, `GET /api/courses`로 전체 목록을 받아와 관심 카테고리 기준으로 프론트에서 필터링
+  4. [AI 서류 자동 작성] 버튼 클릭 시:
+     - `localStorage`의 프로필 데이터와 해당 사업 정보를 조합한 간단한 모달(Modal) 팝업 렌더링
+     - 팝업 내에 "지원 기업/신청자 정보"와 "사업명"이 자동 채워진 '신청 서류 초안' 텍스트박스 노출
+     - 모달 내 [이 내용으로 신청 접수] 버튼 클릭 시 `POST http://localhost:8080/api/enrollments` (`{"courseId": id}`) 호출 및 접수 처리
 
-위 요구사항을 충족하는 완전한 HTML/JS (또는 Vue SFC) 코드를 작성해주세요.
-추가로 테스트를 위해 홈 페이지에 해당 페이지 들로 이동할 수 있는 버튼을 만들어주세요.
+---
+
+위 요구사항을 충족하는 클린하고 직관적인 HTML/JS (또는 Vue 컴포넌트) 코드를 작성해주세요.
